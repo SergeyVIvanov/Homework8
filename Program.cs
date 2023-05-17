@@ -21,6 +21,10 @@ foreach (var numberCount in numberCounts)
     Console.WriteLine(numberCount);
     foreach (var method in Enum.GetValues<ComputationMethods>())
     {
+        var durations = statistics
+            .Select(item => item[numberCount][method])
+            .ToArray();
+        Console.WriteLine($"    {method}: {string.Join(';', durations)} ms");
         var averageDuration = statistics
             .Select(item => item[numberCount][method])
             .Average();
@@ -32,7 +36,7 @@ Console.ReadKey();
 
 static Durations Do(NumberCount numberCount)
 {
-    int[] a = new int[numberCount];
+    long[] a = new long[numberCount];
     for (int i = 0; i < numberCount; i++)
         a[i] = i + 1;
 
@@ -44,14 +48,14 @@ static Durations Do(NumberCount numberCount)
     };
 }
 
-static Duration DoPLINQ(int[] a)
+static Duration DoPLINQ(long[] a)
 {
     return MeasureDuration(() =>
-        a.AsParallel().Sum(n => (long)n)
+        a.AsParallel().Sum()
     );
 }
 
-static Duration DoMultipleThreads(int[] a)
+static Duration DoMultipleThreads(long[] a)
 {
     const int ThreadCount = 10;
 
@@ -77,12 +81,12 @@ static Duration DoMultipleThreads(int[] a)
     });
 }
 
-static Duration DoSingleThread(int[] a)
+static Duration DoSingleThread(long[] a)
 {
     return MeasureDuration(() => DoSum(a, 0, a.Length - 1));
 }
 
-static long DoSum(int[] a, int firstIndex, int lastIndex)
+static long DoSum(long[] a, int firstIndex, int lastIndex)
 {
     long sum = 0;
     for (int i = firstIndex; i <= lastIndex; i++)
